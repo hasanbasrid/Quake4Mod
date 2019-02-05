@@ -3,10 +3,8 @@
 
 #include "../Game_local.h"
 #include "../Weapon.h"
-
-#ifndef __GAME_PROJECTILE_H__
 #include "../Projectile.h"
-#endif
+
 
 class rvWeaponMachinegun : public rvWeapon {
 public:
@@ -224,47 +222,46 @@ rvWeaponMachinegun::State_Fire
 ================
 */
 stateResult_t rvWeaponMachinegun::State_Fire ( const stateParms_t& parms ) {
-		enum {
-			STAGE_INIT,
-			STAGE_WAIT,
-		};
-		switch (parms.stage) {
-		case STAGE_INIT:
-			if (wsfl.zoom) {
-				nextAttackTime = gameLocal.time + (altFireRate * owner->PowerUpModifier(PMOD_FIRERATE));
-				Attack(true, 1, spread, 0, 1.0f);
-				PlayAnim(ANIMCHANNEL_ALL, "idle", parms.blendFrames);
-				//fireHeld = true;
-			}
-			else {
-				nextAttackTime = gameLocal.time + (fireRate * owner->PowerUpModifier(PMOD_FIRERATE));
-				Attack(false, 1, spread, 0, 1.0f);
-
-				int animNum = viewModel->GetAnimator()->GetAnim("fire");
-				if (animNum) {
-					idAnim* anim;
-					anim = (idAnim*)viewModel->GetAnimator()->GetAnim(animNum);
-					anim->SetPlaybackRate((float)anim->Length() / (fireRate * owner->PowerUpModifier(PMOD_FIRERATE)));
-				}
-
-				PlayAnim(ANIMCHANNEL_ALL, "fire", parms.blendFrames);
-			}
-
-			previousAmmo = AmmoInClip();
-			return SRESULT_STAGE(STAGE_WAIT);
-
-		case STAGE_WAIT:
-			if (AnimDone(ANIMCHANNEL_ALL, 0)) {
-				if (!wsfl.zoom)
-					SetState("Reload", 4);
-				else
-					SetState("Idle", 4);
-				return SRESULT_DONE;
-			}
-			return SRESULT_WAIT;
+	enum {
+		STAGE_INIT,
+		STAGE_WAIT,
+	};
+	switch (parms.stage) {
+	case STAGE_INIT:
+		if (wsfl.zoom) {
+			nextAttackTime = gameLocal.time + (altFireRate * owner->PowerUpModifier(PMOD_FIRERATE));
+			Attack(true, 1, spread, 0, 1.0f);
+			PlayAnim(ANIMCHANNEL_ALL, "idle", parms.blendFrames);
+			//fireHeld = true;
 		}
-		return SRESULT_ERROR;
+		else {
+			nextAttackTime = gameLocal.time + (fireRate * owner->PowerUpModifier(PMOD_FIRERATE));
+			Attack(false, 1, spread, 0, 1.0f);
+
+			int animNum = viewModel->GetAnimator()->GetAnim("fire");
+			if (animNum) {
+				idAnim* anim;
+				anim = (idAnim*)viewModel->GetAnimator()->GetAnim(animNum);
+				anim->SetPlaybackRate((float)anim->Length() / (fireRate * owner->PowerUpModifier(PMOD_FIRERATE)));
+			}
+
+			PlayAnim(ANIMCHANNEL_ALL, "fire", parms.blendFrames);
+		}
+
+		return SRESULT_STAGE(STAGE_WAIT);
+
+	case STAGE_WAIT:
+		if (AnimDone(ANIMCHANNEL_ALL, 0)) {
+			if (!wsfl.zoom)
+				SetState("Reload", 4);
+			else
+				SetState("Idle", 4);
+			return SRESULT_DONE;
+		}
+		return SRESULT_WAIT;
 	}
+	return SRESULT_ERROR;
+}
 
 /*
 ================
